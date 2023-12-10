@@ -33,59 +33,75 @@ class Controlador1Service(rpyc.Service):
         print("Conexão perdida com Controlador 1.")
 
     def exposed_acionar_alarme(self):
-        acao = "Ligar"
-        acao_bytes = acao.encode('utf-8')
-        encrypted_value = cipher_suite.encrypt(acao_bytes)
-
-        self.exposed_trigger_callback("01")
-        
-
+        #Esse try é para verificar se o controlador 1 está ligado
         try:
-            mqtt_client_controlador.publish(mqtt_topic_pub_atuador, encrypted_value)
-
-            data_hora = datetime.now()
-            formato_string = "%Y-%m-%d %H:%M:%S"
-            data_hora_string = data_hora.strftime(formato_string)
-            print(data_hora_string)
-            print("=====================")
-            
-            id_registro = uuid4()
-            print(id_registro)
-            print("=====================")
-
-            print(encrypted_value)
-            print("=====================")
-
-            session.execute(insert_query, (id_registro, encrypted_value, data_hora_string))
-
+        
+            conn = rpyc.connect("localhost", 18862)
+        
+            if conn.root.exposed_get_status() == "Ligado":
+                print("Alarme já está ligado!")
+        
         except ConnectionRefusedError:
-            print("Sem conexão!!")
+
+            acao = "Ligar"
+            acao_bytes = acao.encode('utf-8')
+            encrypted_value = cipher_suite.encrypt(acao_bytes)        
+
+            try:
+                mqtt_client_controlador.publish(mqtt_topic_pub_atuador, encrypted_value)
+
+                data_hora = datetime.now()
+                formato_string = "%Y-%m-%d %H:%M:%S"
+                data_hora_string = data_hora.strftime(formato_string)
+                print(data_hora_string)
+                print("=====================")
+                
+                id_registro = uuid4()
+                print(id_registro)
+                print("=====================")
+
+                print(encrypted_value)
+                print("=====================")
+
+                session.execute(insert_query, (id_registro, encrypted_value, data_hora_string))
+
+            except ConnectionRefusedError:
+                print("Sem conexão!!")
 
     def exposed_desativar_alarme(self):
-        acao = "Desligar"
-        acao_bytes = acao.encode('utf-8')
-        encrypted_value = cipher_suite.encrypt(acao_bytes)
-
         try:
-            mqtt_client_controlador.publish(mqtt_topic_pub_atuador, encrypted_value)
-
-            data_hora = datetime.now()
-            formato_string = "%Y-%m-%d %H:%M:%S"
-            data_hora_string = data_hora.strftime(formato_string)
-            print(data_hora_string)
-            print("=====================")
-            
-            id_registro = uuid4()
-            print(id_registro)
-            print("=====================")
-
-            print(encrypted_value)
-            print("=====================")
-
-            session.execute(insert_query, (id_registro, encrypted_value, data_hora_string))
-
+        
+            conn = rpyc.connect("localhost", 18862)
+        
+            if conn.root.exposed_get_status() == "Ligado":
+                print("Alarme já está ligado!")
+        
         except ConnectionRefusedError:
-            print("Banco cagado!!")
+
+            acao = "Desligar"
+            acao_bytes = acao.encode('utf-8')
+            encrypted_value = cipher_suite.encrypt(acao_bytes)
+
+            try:
+                mqtt_client_controlador.publish(mqtt_topic_pub_atuador, encrypted_value)
+
+                data_hora = datetime.now()
+                formato_string = "%Y-%m-%d %H:%M:%S"
+                data_hora_string = data_hora.strftime(formato_string)
+                print(data_hora_string)
+                print("=====================")
+                
+                id_registro = uuid4()
+                print(id_registro)
+                print("=====================")
+
+                print(encrypted_value)
+                print("=====================")
+
+                session.execute(insert_query, (id_registro, encrypted_value, data_hora_string))
+
+            except ConnectionRefusedError:
+                print("Banco cagado!!")
 
     def exposed_aproximacao(self, intensidade):
 
@@ -98,4 +114,3 @@ if __name__ == "__main__":
 
     t = ThreadedServer(Controlador1Service, port=18863)
     t.start()
-
