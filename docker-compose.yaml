@@ -1,0 +1,35 @@
+version: "3"
+services:
+ mqtt:
+      image: toke/mosquitto
+      network_mode: bridge
+      container_name: mqtt
+      expose:
+        - 1883
+      ports:
+        - 1883:1883
+      restart: unless-stopped
+
+ cassandra-node1:
+    image: cassandra:latest
+    container_name: cassandra-node1
+    ports:
+      - "9042:9042"
+    environment:
+     - CASSANDRA_CLUSTER_NAME=mycluster
+     - CASSANDRA_SEEDS=cassandra-node1, cassandra-node2
+    networks:
+     - cassandra-network
+
+ cassandra-node2:
+    image: cassandra:latest
+    container_name: cassandra-node2
+    ports:
+      - "9043:9042"  # Change host port to 5432
+    environment:
+      - CASSANDRA_CLUSTER_NAME=mycluster
+      - CASSANDRA_SEEDS=cassandra-node1, cassandra-node2
+    networks:
+      - cassandra-network
+networks:
+  cassandra-network:
