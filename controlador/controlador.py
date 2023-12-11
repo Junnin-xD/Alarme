@@ -88,10 +88,30 @@ class Controlador1Service(rpyc.Service):
         except ConnectionRefusedError:
             print("Banco cagado!!")
 
-    def exposed_aproximacao(self, intensidade):
+    def on_message(client, userdata, msg):
 
-        decyphred_value = cipher_suite.decrypt(intensidade).decode()
-        print(decyphred_value)
+        decrypted_value = cipher_suite.decrypt(msg.payload)
+        acao = decrypted_value.decode('utf-8')
+        if acao == "Ligar":
+            print(acao)
+
+        elif acao == "Desligar":
+            print(acao)
+
+        return acao
+
+    def exposed_aproximacao(self):
+        acao = "Desligar"
+        mqtt_client_sensor = mqtt.Client()
+        mqtt_client_sensor.connect(mqtt_broker, 1883, 60)
+    
+        while acao == "Desligar":
+
+            mqtt_client_sensor.subscribe(mqtt_topic_pub_sensor)
+            mqtt_client_sensor.on_message = Controlador1Service.on_message()
+            acao = mqtt_client_sensor.on_message
+            print(acao)
+
 
 
 if __name__ == "__main__":
